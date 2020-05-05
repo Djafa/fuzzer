@@ -46,7 +46,7 @@ public class test{
         
         for (int i = 0; i < 100; i++) {
         	//System.out.println("la valeur en bbb" + (byte) i );
-            crashData= genDataWithSpecificVersion(data, (byte) 50);
+            crashData= genDataWithSpecificVersion(data, (byte) i);
             try {
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -188,7 +188,9 @@ public class test{
 
             ProcessBuilder processBuilder = new ProcessBuilder();
 
-            processBuilder.command("./launch.sh");
+            //processBuilder.command("./launch.sh","testInputGen5.img");
+
+            processBuilder.command("./converter_linux_x8664","testInputGen5.img", "testoutput.img");
 
 
             Process process = processBuilder.start();
@@ -198,25 +200,32 @@ public class test{
              BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
              //BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
-            String s = stdInput.readLine();
-            String p = stdInput.readLine();
 
-            System.out.println("le grale : " + s);
+             while ((line = stdInput.readLine()) != null) {
+            	System.out.println("voici la ligne: "+line);
+                msgExec.append(line);
+            }
+
+            stdInput.close();
+
+
+
+            //System.out.println("le grale : " + s);
 
             
 
 
-            BufferedReader bre = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            boolean once = true;
             /* recover all line of the execution message */
-            while (/*(line = bre.readLine()) != null*/ once) {
+
+            /*
+            while (once) {
             	line = bre.readLine();
             	System.out.println("voici la ligne: "+line);
                 msgExec.append(line);
                 once = false;
             }
-            bre.close();
-            process.waitFor();
+
+            */
             return msgExec.toString().toLowerCase().contains("crashed");
 
 
