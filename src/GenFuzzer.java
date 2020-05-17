@@ -202,7 +202,7 @@ public class GenFuzzer extends Fuzzer{
      */
     private static void negativeDimensionPicture(byte[] data, Path path) {
         byte[] crashOne;
-        for (int i = 0; i <256; i++) {// 256 is the max value for a byte
+        for (int i = 1; i <256; i++) {// 256 is the max value for a byte
             crashOne= genCrashData(data,17,(byte)i);// 17 is the index byte to make the negative value for the height
             try {
                 Files.write(path,crashOne);
