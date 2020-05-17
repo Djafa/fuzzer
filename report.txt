@@ -1,0 +1,9 @@
+le program bug pour 
+
+la version dans l'interval [80;99]
+
+la taille du commentaire trop long ça crash entre [1672;2529]
+
+oublie pas à la fin de décommenter la partie qui supprime le fichier dans la méthode testOnCOnverter
+
+J'ai trouvé un crash fonctionnel pour la width et la height acutelle

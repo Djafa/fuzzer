@@ -44,12 +44,12 @@ public class test{
 
         /* Crash test about width and height too large */
         System.out.println("===== Test huge picture size =====");
-        //testOnTheHugeDimension(data,Paths.get("testInputGen4.img"));
+        testOnTheHugeDimension(data,Paths.get("testInputGen4.img"));
 
          /* Crash test  about author name is to big */
-       System.out.println("===================== Test big com name ================");
+       System.out.println("===================== Test big com name ok ================");
        //Syetem.out.println("la première valeur de l'author name : " )
-       testOnTheCom(data,Paths.get("testInputGen3.img"));
+       //testOnTheCom(data,Paths.get("testInputGen3.img"));
 
 
 
@@ -100,10 +100,10 @@ public class test{
      */
     private static void testOnTheAuthorName(byte[] data, Path path) {
         byte [] crashData;
-        int [] hexaIndex = new int[]{5,6,7,8,9}; //de 5 à 9 pour le contenu de l'author name
-        for (int i = -30; i < 256; i+=10) {
-            //crashData= genDataWithBigName(data,i);
-             crashData=genCrashData(data,hexaIndex,new byte[]{(byte)0xff,(byte) 0xff,(byte)0xff,(byte)0xff,(byte)0x11});
+        //int [] hexaIndex = new int[]{5,6,7,8,9}; //de 5 à 9 pour le contenu de l'author name
+        for (int i = 1; i < 10000; i+=10) {
+            crashData= genDataWithBigName(data,i);
+             //crashData=genCrashData(data,hexaIndex,new byte[]{(byte)0xff,(byte) 0xff,(byte)0xff,(byte)0xff,(byte)0x11});
             try {
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -146,20 +146,18 @@ public class test{
                 e.printStackTrace();
             }
 
-            run_process(path);
+
 
              /* Run the converter_static exe */
-
-             /*
-
-            
            
             if (testOnConverter(run_process(path),path)) {
                 System.out.println("[FOUND]: Crash about the author name with length: " + i);
                 return;
             }
 
-            */
+            
+
+            
 
             
         }
@@ -173,7 +171,7 @@ public class test{
     private static void testOnNumberColor(byte[] data, Path path) {
         byte[] crashData;
         int [] hexaIndex = new int[]{21}; //de 21 à 23 pour le contenu de l'author name
-        for (int i = 1; i < 256; i++) {// 256 is the max value for a byte
+        for (int i = -3000; i < 60000; i++) {// 256 is the max value for a byte
             //crashData=genCrashData(data,21,(byte)i); // 21 it's the byte position to make a big number of color
             crashData=genCrashData(data,hexaIndex,new byte[]{(byte) i});
             try{
@@ -182,18 +180,18 @@ public class test{
                 e.printStackTrace();
             }
 
-            run_process(path);
+            //run_process(path);
             /* Run the converter_static exe */
 
 
-            /*
+            
             
             if (testOnConverter(run_process(path),path)){
                 System.out.println("[FOUND]: Crash about the color number upper than 256");
                 return;
             }
 
-            */
+            
         }
     }
 
@@ -204,25 +202,25 @@ public class test{
      */
     private static void testOnTheHugeDimension(byte[] data, Path path) {
         byte [] crashData;
-        int [] hexaIndex = new int[]{12,14}; // 12, 13? 14 for the width and 16,17,18 for height
-        for (int i = 1; i <256; i++) {
+        int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
+        for (int i = 1; i <5000; i++) {
             //crashData=genCrashData(data, 16, (byte)2); //16 is the indice of the height
             //crashData=genCrashData(data, 17, (byte)2);
             //crashData=genCrashData(data, 18, (byte)2);
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)255,(byte) 1});
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i,(byte)i,(byte)i,(byte) i});
             try{
                 Files.write(path,crashData);
             } catch (IOException e) {
                 e.printStackTrace();
             }
             /* Run the converter_static exe */
-            run_process(path);
-            /*
+            //run_process(path);
+            
             if (testOnConverter(run_process(path),path)){
                 System.out.println("[FOUND]: Crash about huge picture dimension");
             }
 
-            */
+            
         }
     }
 
@@ -363,7 +361,9 @@ public class test{
      */
     private static boolean testOnConverter(boolean resultOfTheRun, Path inputFile) {
         /* If the program is not crashing we delete the file */
+
         if (!resultOfTheRun) {
+        	/*
             try {
                 Files.delete(inputFile);
             } catch (NoSuchFileException x) {
@@ -371,6 +371,7 @@ public class test{
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            */
             return false;
         }
         return true;
