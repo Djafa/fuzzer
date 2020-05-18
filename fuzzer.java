@@ -18,9 +18,9 @@ import java.lang.ProcessBuilder;
 
 import java.io.OutputStream;
 
-public class test{
+public class fuzzer{
 
-	public static void main(String [] args){
+    public static void main(String [] args){
 
        
        byte[] data =initData("testinput.img"); // we fetch the file in an array of byte
@@ -40,7 +40,7 @@ public class test{
 
               /* Crash test about the number color is upper than 256 */
         System.out.println("===== Test upper 256 value for the number color =====");
-        testOnNumberColor(data, Paths.get("testInputGen2.img"));
+        //testOnNumberColor(data, Paths.get("testInputGen2.img"));
 
         /* Crash test about width and height too large */
         System.out.println("===== Test huge picture size ok =====");
@@ -53,6 +53,10 @@ public class test{
 
        System.out.println("===================== Test on pixel ok ================");
        //testOnPixel(data,Paths.get("testInputGen3.img"));
+
+       System.out.println("===================== Test on the black color ok ================");
+       testOnBigValCol(data,Paths.get("testInputGen3.img")); //here we test the black color
+
 
       
 
@@ -74,7 +78,7 @@ public class test{
         byte [] crashData;
         
         for (int i = -10; i < 110; i++) {
-        	//System.out.println("la valeur en bbb" + (byte) i );
+            //System.out.println("la valeur en bbb" + (byte) i );
             crashData= genDataWithSpecificVersion(data, (byte) i);
             try {
                 Files.write(path,crashData);
@@ -87,6 +91,35 @@ public class test{
             if (testOnConverter(run_process(path),path)){
                 System.out.println("[DETECTED]: Crash regarding an old version : v-"+i);
                 //return;
+            }
+
+        }
+
+    }
+
+     /** HERE WE TEST WITH THE BLACK
+     *  Crash test about old version of the converter_static program
+     * @param data is a byte array with the good format for the input converter_static program
+     * @param path is the path where the test file will be generated
+     */
+    private static void testOnBigValCol(byte[] data, Path path) {
+        byte [] crashData;
+        
+        for (int i = 1; i < 2000; i++) {
+            crashData= genDataWithBigValCol(data,i);
+            //System.out.println("la valeur en bbb" + (byte) i );
+            //crashData= genDataWithSpecificVersion(data, (byte) i);
+            try {
+                Files.write(path,crashData);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            /* Run the converter_static exe */
+            if (testOnConverter(run_process(path),path)){
+                System.out.println("[DETECTED]: Crash regarding an overflow with the first color : v-"+i);
+                return;
             }
 
         }
@@ -210,10 +243,11 @@ public class test{
      */
     private static void testOnNumberColor(byte[] data, Path path) {
         byte[] crashData;
-        int [] hexaIndex = new int[]{21}; //de 21 à 23 pour la color table
-        for (int i = 1; i < 256; i++) {// 256 is the max value for a byte
+        int [] hexaIndex = new int[]{21,22,23}; //de 21 à 23 pour la color table
+        for (int i = 1; i < 5000; i++) {// 256 is the max value for a byte
+            //crashData=genDataWithBigColor(data,i);
             //crashData=genCrashData(data,21,(byte)i); // 21 it's the byte position to make a big number of color
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)0});
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)0,(byte)0,(byte)i});
             try{
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -325,6 +359,51 @@ public class test{
         return newData;
     }
 
+        /**
+     * Generator input file with a author name with nameLength size
+     * @param data is a byte array with the good format for the input converter_static program
+     * @param nameLength the length of author name we want in the input file
+     * @return a byte array based on the data variable with the author name of specific length
+     */
+    private static byte[] genDataWithBigColor(byte[] data, int nameLength) {
+        byte [] newData = new byte[(data.length-3)+nameLength];// 5 it's for the old size name
+        System.arraycopy(data,0,newData,0,21);
+        /* Creation of the new name with random value */
+        for (int i = 21; i < nameLength+4 ; i++) {
+            newData[i]= (byte) ((Math.floor(Math.random()*255)+1)); // 1 because we don't want a zero value
+               
+        }
+        newData[nameLength+4]=(byte) 0x00;
+
+        for (int i = (nameLength+4)+1, j=25 ; i < newData.length && j < data.length; i++,j++) { //avais is 41 au début
+            newData[i]=data[j];
+        }
+        return newData;
+    }
+
+
+            /** HERE WE TRY TO OVERFLOW THE COLOR TABLE
+     * Generator input file with a author name with nameLength size
+     * @param data is a byte array with the good format for the input converter_static program
+     * @param nameLength the length of author name we want in the input file
+     * @return a byte array based on the data variable with the author name of specific length
+     */
+    private static byte[] genDataWithBigValCol(byte[] data, int nameLength) {
+        byte [] newData = new byte[(data.length-3)+nameLength];// 5 it's for the old size name
+        System.arraycopy(data,0,newData,0,26); // on choisir le black one
+        /* Creation of the new name with random value */
+        for (int i = 26; i < nameLength+4 ; i++) {
+            newData[i]= (byte) ((Math.floor(Math.random()*255)+1)); // 1 because we don't want a zero value
+               
+        }
+        newData[nameLength+4]=(byte) 0x00;
+
+        for (int i = (nameLength+4)+1, j=30 ; i < newData.length && j < data.length; i++,j++) { //avais is 41 au début
+            newData[i]=data[j];
+        }
+        return newData;
+    }
+
 
 
 
@@ -371,7 +450,7 @@ public class test{
     private static void negativeDimensionPicture(byte[] data, Path path) {
         byte[] crashOne;
         for (int i = -80; i <256; i++) {// 256 is the max value for a byte
-        	Integer p = new Integer(4);
+            Integer p = new Integer(4);
             crashOne= genCrashData(data,16,(byte)i);// 17 is the index byte to make the negative value for the height
             try {
                 Files.write(path,crashOne);
@@ -406,7 +485,7 @@ public class test{
         /* If the program is not crashing we delete the file */
 
         if (!resultOfTheRun) {
-        	/*
+            /*
             try {
                 Files.delete(inputFile);
             } catch (NoSuchFileException x) {
