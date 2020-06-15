@@ -28,22 +28,22 @@ public class fuzzer{
 
        /* Crash test about old version, we test different values and it crashes for value 80 */
        System.out.println("===================== Test old version ================");
-       testOnTheOldVersion(data,Paths.get("testInputGen1.img"));
+       testOnTheOldVersion(data,Paths.get("version.img"));
 
        /* Crash test about height value too big, we test different values and it crashes for value 128 */
        System.out.println("===================== Test huge picture size =========="); //test on only height it works
-       testOnTheHugeDimension(data,Paths.get("testInputGen2.img"));
+       testOnTheHugeDimension(data,Paths.get("height.img"));
 
        /* Crash test  about the too big commentary that is creating an overflow and it crashes with a comment size of 1672 */
        System.out.println("===================== Test big com name ===============");
-       testOnTheCom(data,Paths.get("testInputGen3.img"));
+       testOnTheCom(data,Paths.get("comment.img"));
          
        /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
        System.out.println("===================== Test on end of header ===========");
-       testOnEndOfHeader(data,Paths.get("testInputGen4.img"));
+       testOnEndOfHeader(data,Paths.get("header.img"));
 
        System.out.println("===================== Test on the black color ok ======");
-       testOnBigValCol(data,Paths.get("testInputGen5.img")); //here we test the black color 
+       testOnBigValCol(data,Paths.get("color.img")); //here we test the black color 
 
     }
 
@@ -140,7 +140,7 @@ public class fuzzer{
      */
     private static void testOnTheCom(byte[] data, Path path) {
         byte [] crashData;
-         int [] hexaIndex = new int[]{35,36, 37,38, 39}; //de 34 à 38 pour le contenu du commentaire
+         int [] hexaIndex = new int[]{35,36, 37,38,39}; //de 34 à 38 pour le contenu du commentaire
         for (int i = 200; i < 3000; i++) {
             crashData= genDataWithBigCom(data,i);
             try {
