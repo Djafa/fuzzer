@@ -82,8 +82,10 @@ public class fuzzer{
      */
     private static void testOnBigValCol(byte[] data, Path path) {
         byte [] crashData; 
+         int [] hexaIndex = new int[]{21,22};
         for (int i = 1; i < 2000; i++) {
-            crashData= genDataWithBigValCol(data,i);
+            //crashData= genDataWithBigValCol(data,i);
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i, (byte)i});
             try {
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -371,7 +373,7 @@ public class fuzzer{
             processBuilder.command("./converter_linux_x8664", inputFile.toString(), "testoutput.img");
             Process process = processBuilder.start();
             process.waitFor();
-            
+
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
              while ((line = stdInput.readLine()) != null) {
