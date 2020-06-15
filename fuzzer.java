@@ -25,43 +25,25 @@ public class fuzzer{
        
        byte[] data =initData("testinput.img"); // we fetch the file in an array of byte
 
-       /* Crash test about negative value for the width or the height */
-        System.out.println("===== Test negative picture size =====");
-        //negativeDimensionPicture(data, Paths.get("testInputGen1.img"));
 
-       /* Crash test about old version */
-       System.out.println("===================== Test old version ok ================");
-       //testOnTheOldVersion(data,Paths.get("testInputGen5.img"));
+       /* Crash test about old version, we test different values and it crashes for value 80 */
+       System.out.println("===================== Test old version ================");
+       testOnTheOldVersion(data,Paths.get("testInputGen1.img"));
 
-       /* Crash test  about author name is to big */
-       System.out.println("===================== Test big author name ================");
-       //Syetem.out.println("la première valeur de l'author name : " )
-       //testOnTheAuthorName(data,Paths.get("testInputGen3.img"));
+       /* Crash test about height value too big, we test different values and it crashes for value 128 */
+       System.out.println("===================== Test huge picture size =========="); //test on only height it works
+       testOnTheHugeDimension(data,Paths.get("testInputGen2.img"));
 
-              /* Crash test about the number color is upper than 256 */
-        System.out.println("===== Test upper 256 value for the number color =====");
-        //testOnNumberColor(data, Paths.get("testInputGen2.img"));
+       /* Crash test  about the too big commentary that is creating an overflow and it crashes with a comment size of 1672 */
+       System.out.println("===================== Test big com name ===============");
+       testOnTheCom(data,Paths.get("testInputGen3.img"));
+         
+       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
+       System.out.println("===================== Test on end of header ===========");
+       testOnEndOfHeader(data,Paths.get("testInputGen4.img"));
 
-        /* Crash test about width and height too large */
-        System.out.println("===== Test huge picture size ok =====");
-        //testOnTheHugeDimension(data,Paths.get("testInputGen4.img"));
-
-         /* Crash test  about author name is to big */
-       System.out.println("===================== Test big com name ok ================");
-       //Syetem.out.println("la première valeur de l'author name : " )
-       //testOnTheCom(data,Paths.get("testInputGen3.img"));
-
-       System.out.println("===================== Test on pixel ok ================");
-       //testOnPixel(data,Paths.get("testInputGen3.img"));
-
-       System.out.println("===================== Test on the black color ok ================");
-       testOnBigValCol(data,Paths.get("testInputGen3.img")); //here we test the black color
-
-
-      
-
-
-       
+       System.out.println("===================== Test on the black color ok ======");
+       testOnBigValCol(data,Paths.get("testInputGen5.img")); //here we test the black color 
 
     }
 
@@ -76,9 +58,7 @@ public class fuzzer{
      */
     private static void testOnTheOldVersion(byte[] data, Path path) {
         byte [] crashData;
-        
         for (int i = -10; i < 110; i++) {
-            //System.out.println("la valeur en bbb" + (byte) i );
             crashData= genDataWithSpecificVersion(data, (byte) i);
             try {
                 Files.write(path,crashData);
@@ -86,11 +66,10 @@ public class fuzzer{
                 e.printStackTrace();
             }
 
-
-            /* Run the converter_static exe */
+            /* Run the converter program */
             if (testOnConverter(run_process(path),path)){
-                System.out.println("[DETECTED]: Crash regarding an old version : v-"+i);
-                //return;
+                System.out.println("[FOUND] Crash regarding an old version : v-"+i);
+                return;
             }
 
         }
@@ -103,22 +82,17 @@ public class fuzzer{
      * @param path is the path where the test file will be generated
      */
     private static void testOnBigValCol(byte[] data, Path path) {
-        byte [] crashData;
-        
+        byte [] crashData; 
         for (int i = 1; i < 2000; i++) {
             crashData= genDataWithBigValCol(data,i);
-            //System.out.println("la valeur en bbb" + (byte) i );
-            //crashData= genDataWithSpecificVersion(data, (byte) i);
             try {
                 Files.write(path,crashData);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
             /* Run the converter_static exe */
             if (testOnConverter(run_process(path),path)){
-                System.out.println("[DETECTED]: Crash regarding an overflow with the first color : v-"+i);
+                System.out.println("[FOUND] Crash regarding an overflow with the first color : v-"+i);
                 return;
             }
 
@@ -132,7 +106,7 @@ public class fuzzer{
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
-    private static void testOnPixel(byte[] data, Path path) {
+    private static void testOnEndOfHeader(byte[] data, Path path) {
         byte [] crashData;
         int [] hexaIndex = new int[]{41}; //de 41 à 44 pour l'emplacement des pixels
         for (int i = 0; i < 256; i+=1) {
@@ -144,16 +118,9 @@ public class fuzzer{
                 e.printStackTrace();
             }
 
-            //run_process(path);
-
-             /* Run the converter_static exe */
-
-             
-
-            
-           
+            /* Run the converter program */                
             if (testOnConverter(run_process(path),path)) {
-                System.out.println("[FOUND]: Crash about the author pixel with value: " + i);
+                System.out.println("[FOUND] Crash about the end of header field with value: " + i);
                 return;
             }
 
@@ -165,42 +132,6 @@ public class fuzzer{
 
 
 
-
-    /**
-     *  Crash test about the size of the author name in the input file for the converter_static program
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param path is the path where the test file will be generated
-     */
-    private static void testOnTheAuthorName(byte[] data, Path path) {
-        byte [] crashData;
-        int [] hexaIndex = new int[]{5}; //de 5 à 9 pour le contenu de l'author name
-        for (int i = 0; i < 256; i+=1) {
-            //crashData= genDataWithBigName(data,i);
-             crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i});
-            try {
-                Files.write(path,crashData);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            //run_process(path);
-
-             /* Run the converter_static exe */
-
-             
-
-            
-           
-            if (testOnConverter(run_process(path),path)) {
-                System.out.println("[FOUND]: Crash about the author name with length: " + i);
-                return;
-            }
-
-            
-
-            
-        }
-    }
 
      /**
      *  Crash test about the size of the author name in the input file for the converter_static program
@@ -212,7 +143,6 @@ public class fuzzer{
          int [] hexaIndex = new int[]{35,36, 37,38, 39}; //de 34 à 38 pour le contenu du commentaire
         for (int i = 200; i < 3000; i++) {
             crashData= genDataWithBigCom(data,i);
-            //crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i, (byte)i, (byte)i, (byte)i, (byte)i});
             try {
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -221,10 +151,10 @@ public class fuzzer{
 
 
 
-             /* Run the converter_static exe */
+            /* Run the converter program*/
            
             if (testOnConverter(run_process(path),path)) {
-                System.out.println("[FOUND]: Crash about the author name with length: " + i);
+                System.out.println("[FOUND] Crash about the comment with a length of : " + i);
                 return;
             }
 
@@ -236,39 +166,7 @@ public class fuzzer{
         }
     }
 
-     /**
-     *  Crash test about number of colors the color table can contain
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param path is the path where the test file will be generated
-     */
-    private static void testOnNumberColor(byte[] data, Path path) {
-        byte[] crashData;
-        int [] hexaIndex = new int[]{21,22,23}; //de 21 à 23 pour la color table
-        for (int i = 1; i < 5000; i++) {// 256 is the max value for a byte
-            //crashData=genDataWithBigColor(data,i);
-            //crashData=genCrashData(data,21,(byte)i); // 21 it's the byte position to make a big number of color
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)0,(byte)0,(byte)i});
-            try{
-                Files.write(path,crashData);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            //run_process(path);
-            /* Run the converter_static exe */
-
-
-            
-            
-            if (testOnConverter(run_process(path),path)){
-                System.out.println("[FOUND]: Crash about the color number upper than 256");
-                return;
-            }
-
-            
-        }
-    }
-
+    
      /**
      *  Crash test about dimension of the pixels table can have
      * @param data is a byte array with the good format for the input converter_static program
@@ -276,22 +174,20 @@ public class fuzzer{
      */
     private static void testOnTheHugeDimension(byte[] data, Path path) {
         byte [] crashData;
-        int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
+        //int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
+        int [] hexaIndex = new int[]{16,19};
         for (int i = 1; i <5000; i++) {
-            //crashData=genCrashData(data, 16, (byte)2); //16 is the indice of the height
-            //crashData=genCrashData(data, 17, (byte)2);
-            //crashData=genCrashData(data, 18, (byte)2);
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i,(byte)i,(byte)i,(byte) i});
+            //crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i,(byte)i,(byte)i,(byte) i});
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i,(byte) i});
             try{
                 Files.write(path,crashData);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            /* Run the converter_static exe */
-            //run_process(path);
-            
+
+            /* Run the converter program */
             if (testOnConverter(run_process(path),path)){
-                System.out.println("[FOUND]: Crash about huge picture dimension for width and height : " + i);
+                System.out.println("[FOUND] Crash about huge picture dimension for height : " + i);
                 return;
             }
 
@@ -401,6 +297,8 @@ public class fuzzer{
         for (int i = (nameLength+4)+1, j=30 ; i < newData.length && j < data.length; i++,j++) { //avais is 41 au début
             newData[i]=data[j];
         }
+        //je mdifie juste le nbr de couleur
+        //newData[21] = (byte)4;
         return newData;
     }
 
@@ -439,41 +337,7 @@ public class fuzzer{
     }
 
 
-
    
-
-    /**
-     *  Crash test about the value of height particularly negative value
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param path is the path where the test file will be generated
-     */
-    private static void negativeDimensionPicture(byte[] data, Path path) {
-        byte[] crashOne;
-        for (int i = -80; i <256; i++) {// 256 is the max value for a byte
-            Integer p = new Integer(4);
-            crashOne= genCrashData(data,16,(byte)i);// 17 is the index byte to make the negative value for the height
-            try {
-                Files.write(path,crashOne);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            /* Run the converter_static exe */
-
-            run_process(path);
-            
-            /*
-            if(testOnConverter(run_process(path),path)){
-                System.out.println("[FOUND]: Crash about negative dimension");
-                return;
-            }
-
-            */
-        }
-
-    }
-
-
      /**
      * Test if the result of the execution have crashed the program
      * @param resultOfTheRun is boolean flag if the string result execution of
@@ -501,7 +365,7 @@ public class fuzzer{
 
 
 
-    /****************************************************************************************************** partie liée à la classe mère aux opérations plus hardware **************************************************/
+    /****************************************************************************************************** Hardware focused operations**************************************************/
 
 
 
@@ -554,7 +418,9 @@ public class fuzzer{
                 msgExec.append(line);
             }
 
-            System.out.println("output of command ./converter_linux_x8664" + inputFile.toString() + " testoutput.img : "+ msgExec.toString());
+            //I've decided here not to print out every output of the program
+
+            //System.out.println("output of command ./converter_linux_x8664" + inputFile.toString() + " testoutput.img : "+ msgExec.toString());
 
             stdInput.close();
 
