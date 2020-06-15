@@ -44,15 +44,14 @@ public class fuzzer{
 
        System.out.println("===================== Test on the black color ok ======");
        testOnBigValCol(data,Paths.get("color.img")); //here we test the black color 
-
     }
 
 
-/*********************************************** test methode section *******************************************************************************/
+/*********************************************** test method section *******************************************************************************/
    
 
     /**
-     *  Crash test about old version of the converter_static program
+     *  Crash test about old version of the converter program
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
@@ -102,15 +101,14 @@ public class fuzzer{
 
 
     /**
-     *  Crash test about the size of the author name in the input file for the converter_static program
+     *  Crash test about the modification of the end of header field
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
     private static void testOnEndOfHeader(byte[] data, Path path) {
         byte [] crashData;
-        int [] hexaIndex = new int[]{41}; //de 41 à 44 pour l'emplacement des pixels
+        int [] hexaIndex = new int[]{41}; //index 41 for the end of the header
         for (int i = 0; i < 256; i+=1) {
-            //crashData= genDataWithBigName(data,i);
              crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i});
             try {
                 Files.write(path,crashData);
@@ -131,10 +129,8 @@ public class fuzzer{
     }
 
 
-
-
      /**
-     *  Crash test about the size of the author name in the input file for the converter_static program
+     *  Crash test about the number of characters used in the comment
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
@@ -149,26 +145,18 @@ public class fuzzer{
                 e.printStackTrace();
             }
 
-
-
             /* Run the converter program*/
-           
             if (testOnConverter(run_process(path),path)) {
                 System.out.println("[FOUND] Crash about the comment with a length of : " + i);
                 return;
             }
-
-            
-
-            
-
             
         }
     }
 
     
      /**
-     *  Crash test about dimension of the pixels table can have
+     *  Crash test about dimensions, particularly for different values of the height
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
@@ -198,7 +186,6 @@ public class fuzzer{
 
     /*************************************************************************** getter method *************************************************************************************/
 
-
     /**
      * Generator input file with the version initialize to the version parameter
      * @param data is a byte array with the good format for the input converter_static program
@@ -213,28 +200,7 @@ public class fuzzer{
     }
 
 
-        /**
-     * Generator input file with a author name with nameLength size
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param nameLength the length of author name we want in the input file
-     * @return a byte array based on the data variable with the author name of specific length
-     */
-    private static byte[] genDataWithBigName(byte[] data, int nameLength) {
-        byte [] newData = new byte[(data.length-5)+nameLength];// 5 it's for the old size name
-        System.arraycopy(data,0,newData,0,5);
-        /* Creation of the new name with random value */
-        for (int i = 5; i < nameLength+4 ; i++) {
-            newData[i]= (byte) (Math.floor(Math.random()*255)+1); // 1 because we don't want a zero value   
-        }
-        newData[nameLength+4]=(byte) 0x00;
-
-        for (int i = (nameLength+4)+1, j= 11; i < newData.length && j < data.length; i++,j++) {
-            newData[i]=data[j];
-        }
-        return newData;
-    }
-
-        /**
+    /**
      * Generator input file with a author name with nameLength size
      * @param data is a byte array with the good format for the input converter_static program
      * @param nameLength the length of author name we want in the input file
@@ -401,33 +367,20 @@ public class fuzzer{
             String line;
             StringBuilder msgExec = new StringBuilder();
             
-
             ProcessBuilder processBuilder = new ProcessBuilder();
-
             processBuilder.command("./converter_linux_x8664", inputFile.toString(), "testoutput.img");
-
-
             Process process = processBuilder.start();
-
             process.waitFor();
-
+            
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
 
              while ((line = stdInput.readLine()) != null) {
                 msgExec.append(line);
             }
-
             //I've decided here not to print out every output of the program
-
             //System.out.println("output of command ./converter_linux_x8664" + inputFile.toString() + " testoutput.img : "+ msgExec.toString());
-
             stdInput.close();
-
-
             return msgExec.toString().toLowerCase().contains("crashed");
-
-
 
         }
         catch (Exception err) {
