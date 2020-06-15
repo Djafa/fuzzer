@@ -42,8 +42,8 @@ public class fuzzer{
        System.out.println("===================== Test on end of header ===========");
        testOnEndOfHeader(data,Paths.get("header.img"));
 
-       System.out.println("===================== Test on the black color ok ======");
-       testOnBigValCol(data,Paths.get("color.img")); //here we test the black color 
+       //System.out.println("===================== Test on the black color ok ======");
+       //testOnBigValCol(data,Paths.get("color.img")); //here we test the black color 
     }
 
 
