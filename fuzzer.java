@@ -20,34 +20,6 @@ import java.io.OutputStream;
 
 public class fuzzer{
 
-    public static void main(String [] args){
-
-       
-       byte[] data =initData("testinput.img"); // we fetch the file in an array of byte
-
-
-       /* Crash test about old version, we test different values and it crashes for value 80 */
-       System.out.println("===================== Test old version ================");
-       testOnTheOldVersion(data,Paths.get("version.img"));
-
-       /* Crash test about height value too big, we test different values and it crashes for value 128 */
-       System.out.println("===================== Test huge picture size =========="); //test on only height it works
-       testOnTheHugeDimension(data,Paths.get("height.img"));
-
-       /* Crash test  about the too big commentary that is creating an overflow and it crashes with a comment size of 1672 */
-       System.out.println("===================== Test big com name ===============");
-       testOnTheCom(data,Paths.get("comment.img"));
-         
-       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
-       System.out.println("===================== Test on end of header ===========");
-       testOnEndOfHeader(data,Paths.get("header.img"));
-
-       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
-       //System.out.println("===================== Test on last ===========");
-       //testOnL(data,Paths.get("l.img"));
-
-    }
-
 
 /*********************************************** test method section *******************************************************************************/
    
@@ -139,7 +111,7 @@ public class fuzzer{
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
-    private static void testOnTheHugeDimension(byte[] data, Path path) {
+    private static void testOnNegativeHeight(byte[] data, Path path) {
         byte [] crashData;
         //int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
         int [] hexaIndex = new int[]{19};
@@ -166,12 +138,12 @@ public class fuzzer{
      * @param data is a byte array with the good format for the input converter_static program
      * @param path is the path where the test file will be generated
      */
-    private static void testOnL(byte[] data, Path path) {
+    private static void testOnHugeDimension(byte[] data, Path path) {
         byte [] crashData;
         //int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
         int [] hexaIndex = new int[]{12,13,14,15,16,17,18,19};
         for (int i = 1; i <50000; i=i+10000) {
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)64,(byte)156,(byte)0,(byte)0,(byte)64,(byte)156,(byte)0,(byte)0});
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)160,(byte)9,(byte)1,(byte)0,(byte)160,(byte)9,(byte)1,(byte)0});
             try{
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -180,7 +152,7 @@ public class fuzzer{
 
             /* Run the converter program */
             if (testOnConverter(run_process(path),path)){
-                System.out.println("[FOUND] Crash about width*height: " + i);
+                System.out.println("[FOUND] Crash about width*height: 68000x68000");
                 return;
             }
 
@@ -339,27 +311,6 @@ public class fuzzer{
     /****************************************************************************************************** Hardware focused operations**************************************************/
 
 
-
-
-    static byte[] initData(String filename) {
-        File fileName = new File(filename);
-        return read_file(fileName);
-    }
-
-     private static byte[] read_file(File file) {
-        byte[] data = new byte[0];
-        try {
-            data = Files.readAllBytes(file.toPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
-
-
-
-
-
     //méthode pour lancer la ligne de commande
 
         /**
@@ -392,6 +343,39 @@ public class fuzzer{
             err.printStackTrace();
         }
         return false;
+    }
+
+
+    public static void main(String [] args){
+
+        
+  
+       // we generate here the initial file
+       byte [] data = {(byte)0xab, (byte)0xcd, (byte)0x64, (byte)0x00 , (byte)0x01 , (byte)0x52 , (byte)0x61 , (byte)0x6d  , (byte)0x69 , (byte)0x6e , (byte)0x00 , (byte)0x02 , (byte)0x02 , (byte)0x00 , (byte)0x00 , (byte)0x00 , (byte)0x02 , (byte)0x00 , (byte)0x00 , (byte)0x00 , (byte)0x0a , (byte)0x02 , (byte)0x00 , (byte)0x00  , (byte)0x00, 
+       (byte)0x0b , (byte)0x00 , (byte)0x00 , (byte)0x00 , (byte)0x00 , (byte)0xff , (byte)0xff , (byte)0xff , (byte)0x00,
+       (byte)0x0c , (byte)0x48 , (byte)0x65 , (byte)0x6c , (byte)0x6c , (byte)0x6f  , (byte)0x00 , (byte)0x00 , (byte)0x01 , (byte)0x01 , (byte)0x00 };
+
+
+       /* Crash test about old version, we test different values and it crashes for value 80 */
+       System.out.println("===================== Test old version ================");
+       testOnTheOldVersion(data,Paths.get("version.img"));
+
+       /* Crash test about height value too big, we test different values and it crashes for value 128 */
+       System.out.println("===================== Test negative value of height ==="); //test on only height it works
+       testOnNegativeHeight(data,Paths.get("height.img"));
+
+       /* Crash test  about the too big commentary that is creating an overflow and it crashes with a comment size of 1672 */
+       System.out.println("===================== Test big com name ===============");
+       testOnTheCom(data,Paths.get("comment.img"));
+         
+       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
+       System.out.println("===================== Test on end of header ===========");
+       testOnEndOfHeader(data,Paths.get("header.img"));
+
+       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
+       System.out.println("===================== Test on last ====================");
+       testOnHugeDimension(data,Paths.get("dimension.img"));
+
     }
 
 
