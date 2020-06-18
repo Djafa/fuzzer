@@ -43,8 +43,8 @@ public class fuzzer{
        testOnEndOfHeader(data,Paths.get("header.img"));
 
        /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
-       System.out.println("===================== Test on last ===========");
-       testOnL(data,Paths.get("l.img"));
+       //System.out.println("===================== Test on last ===========");
+       //testOnL(data,Paths.get("l.img"));
 
     }
 
