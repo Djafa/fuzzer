@@ -178,7 +178,7 @@ public class fuzzer{
 
 
     /**
-     * Generator input file with a author name with nameLength size
+     * Generator input file with a comment name with nameLength size
      * @param data is a byte array with the good format for the input converter_static program
      * @param nameLength the length of author name we want in the input file
      * @return a byte array based on the data variable with the author name of specific length
@@ -198,71 +198,7 @@ public class fuzzer{
         return newData;
     }
 
-        /**
-     * Generator input file with a author name with nameLength size
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param nameLength the length of author name we want in the input file
-     * @return a byte array based on the data variable with the author name of specific length
-     */
-    private static byte[] genDataWithBigColor(byte[] data, int nameLength) {
-        byte [] newData = new byte[(data.length-3)+nameLength];// 5 it's for the old size name
-        System.arraycopy(data,0,newData,0,21);
-        /* Creation of the new name with random value */
-        for (int i = 21; i < nameLength+4 ; i++) {
-            newData[i]= (byte) ((Math.floor(Math.random()*255)+1)); // 1 because we don't want a zero value
-               
-        }
-        newData[nameLength+4]=(byte) 0x00;
-
-        for (int i = (nameLength+4)+1, j=25 ; i < newData.length && j < data.length; i++,j++) { //avais is 41 au début
-            newData[i]=data[j];
-        }
-        return newData;
-    }
-
-
-            /** HERE WE TRY TO OVERFLOW THE COLOR TABLE
-     * Generator input file with a author name with nameLength size
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param nameLength the length of author name we want in the input file
-     * @return a byte array based on the data variable with the author name of specific length
-     */
-    private static byte[] genDataWithBigValCol(byte[] data, int nameLength) {
-        byte [] newData = new byte[(data.length-3)+nameLength];// 5 it's for the old size name
-        System.arraycopy(data,0,newData,0,26); // on choisir le black one
-        /* Creation of the new name with random value */
-        for (int i = 26; i < nameLength+4 ; i++) {
-            newData[i]= (byte) ((Math.floor(Math.random()*255)+1)); // 1 because we don't want a zero value
-               
-        }
-        newData[nameLength+4]=(byte) 0x00;
-
-        for (int i = (nameLength+4)+1, j=30 ; i < newData.length && j < data.length; i++,j++) { //avais is 41 au début
-            newData[i]=data[j];
-        }
-        //je mdifie juste le nbr de couleur
-        //newData[21] = (byte)4;
-        return newData;
-    }
-
-
-
-
-        /**
-     * Modifier byte
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param index of the byte will be modified
-     * @param crashValue is the value that should be crashed the converter_static program
-     * @return a byte array with the value at the index "index" modified by the crashValue
-     */
-    private static byte[] genCrashData(byte[] data, int index, byte crashValue) {
-        byte[] res = new byte[data.length];
-        System.arraycopy( data, 0, res, 0, data.length );
-        res[index]=crashValue;
-        return res;
-    }
-
-
+   
     /**
      * Simple method to modify some indexes with some byte values
      * @param data is the byte array containing a base of data for the converter progam
@@ -292,15 +228,7 @@ public class fuzzer{
         /* If the program is not crashing we delete the file */
 
         if (!resultOfTheRun) {
-            /*
-            try {
-                Files.delete(inputFile);
-            } catch (NoSuchFileException x) {
-                System.err.format("%s: no such" + " file or directory%n", inputFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            */
+            // we return false if it did not crashed
             return false;
         }
         return true;
@@ -311,10 +239,9 @@ public class fuzzer{
     /****************************************************************************************************** Hardware focused operations**************************************************/
 
 
-    //méthode pour lancer la ligne de commande
 
         /**
-     * Function run the converter_static pragram with the file specified by the inputFile variable
+     * Function run the converter pragram with the file specified by the inputFile variable
      * @param inputFile the input file we give to the exec file.
      * @return true if the execution message contains the crash
      */
@@ -333,8 +260,7 @@ public class fuzzer{
              while ((line = stdInput.readLine()) != null) {
                 msgExec.append(line);
             }
-            //I've decided here not to print out every output of the program
-            //System.out.println("output of command ./converter_linux_x8664" + inputFile.toString() + " testoutput.img : "+ msgExec.toString());
+
             stdInput.close();
             return msgExec.toString().toLowerCase().contains("crashed");
 
@@ -372,7 +298,7 @@ public class fuzzer{
        System.out.println("===================== Test on end of header ===========");
        testOnEndOfHeader(data,Paths.get("header.img"));
 
-       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
+       /* Crash test regardng the size of the image heightxwidth equal to: 68000x68000 */
        System.out.println("===================== Test on last ====================");
        testOnHugeDimension(data,Paths.get("dimension.img"));
 
