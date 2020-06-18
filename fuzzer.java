@@ -42,8 +42,10 @@ public class fuzzer{
        System.out.println("===================== Test on end of header ===========");
        testOnEndOfHeader(data,Paths.get("header.img"));
 
-       //System.out.println("===================== Test on the black color ok ======");
-       //testOnBigValCol(data,Paths.get("color.img")); //here we test the black color 
+       /* Crash test regardng the byte filed for the end of the header, we test different values and it crashes for value 117 */
+       System.out.println("===================== Test on last ===========");
+       testOnL(data,Paths.get("l.img"));
+
     }
 
 
@@ -75,31 +77,6 @@ public class fuzzer{
 
     }
 
-     /** HERE WE TEST WITH THE BLACK
-     *  Crash test about old version of the converter_static program
-     * @param data is a byte array with the good format for the input converter_static program
-     * @param path is the path where the test file will be generated
-     */
-    private static void testOnBigValCol(byte[] data, Path path) {
-        byte [] crashData; 
-         int [] hexaIndex = new int[]{21,22};
-        for (int i = 1; i < 2000; i++) {
-            //crashData= genDataWithBigValCol(data,i);
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i, (byte)i});
-            try {
-                Files.write(path,crashData);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            /* Run the converter_static exe */
-            if (testOnConverter(run_process(path),path)){
-                System.out.println("[FOUND] Crash regarding an overflow with the first color : v-"+i);
-                return;
-            }
-
-        }
-
-    }
 
 
     /**
@@ -165,10 +142,9 @@ public class fuzzer{
     private static void testOnTheHugeDimension(byte[] data, Path path) {
         byte [] crashData;
         //int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
-        int [] hexaIndex = new int[]{16,19};
+        int [] hexaIndex = new int[]{19};
         for (int i = 1; i <5000; i++) {
-            //crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i,(byte)i,(byte)i,(byte) i});
-            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i,(byte) i});
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)i});
             try{
                 Files.write(path,crashData);
             } catch (IOException e) {
@@ -178,6 +154,33 @@ public class fuzzer{
             /* Run the converter program */
             if (testOnConverter(run_process(path),path)){
                 System.out.println("[FOUND] Crash about huge picture dimension for height : " + i);
+                return;
+            }
+
+            
+        }
+    }
+
+     /**
+     *  Crash test about dimensions, particularly for different values of the height
+     * @param data is a byte array with the good format for the input converter_static program
+     * @param path is the path where the test file will be generated
+     */
+    private static void testOnL(byte[] data, Path path) {
+        byte [] crashData;
+        //int [] hexaIndex = new int[]{13,14,17,18}; // 12, 13? 14 for the width and 16,17,18 for height
+        int [] hexaIndex = new int[]{12,13,14,15,16,17,18,19};
+        for (int i = 1; i <50000; i=i+10000) {
+            crashData=genCrashData(data,hexaIndex,new byte[]{(byte)64,(byte)156,(byte)0,(byte)0,(byte)64,(byte)156,(byte)0,(byte)0});
+            try{
+                Files.write(path,crashData);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            /* Run the converter program */
+            if (testOnConverter(run_process(path),path)){
+                System.out.println("[FOUND] Crash about width*height: " + i);
                 return;
             }
 
@@ -213,7 +216,7 @@ public class fuzzer{
         System.arraycopy(data,0,newData,0,35);
         /* Creation of the new name with random value */
         for (int i = 35; i < nameLength+4 ; i++) {
-            newData[i]= (byte) ((Math.floor(Math.random()*255)+1)); // 1 because we don't want a zero value   
+            newData[i]= (byte) ((Math.floor(Math.random()*255)+1)); // 1 because we don't want a zero value 
         }
         newData[nameLength+4]=(byte) 0x00;
 
